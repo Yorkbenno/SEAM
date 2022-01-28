@@ -1,0 +1,6 @@
+*/
+!voc12
+!tool
+!network
+*.pth
+*.log

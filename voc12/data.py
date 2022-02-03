@@ -131,6 +131,16 @@ class MyClsDatasetMSF(MyClsDataset):
 
         return name, msf_img_list, label
 
+class MyClsValDatasetMSF(MyClsDatasetMSF):
+
+    def __init__(self, img_name_list_path, scales, inter_transform=None, unit=1):
+        super().__init__(img_name_list_path, scales, inter_transform, unit)
+
+    def __getitem__(self, idx):
+        name, msf_img_list, label = super().__getitem__(idx)
+        position = name[name.find("(")+1:name.find(")")].split(',')
+        position = np.array([int(i) for i in position])
+        return name, msf_img_list, label, position
 class VOC12ClsDatasetMS(MyClsDataset):
 
     def __init__(self, img_name_list_path, voc12_root, scales, inter_transform=None, unit=1):

@@ -34,8 +34,9 @@ if __name__ == '__main__':
 
     model.eval()
     model.cuda()
-        
-    infer_dataset = voc12.data.MyClsDatasetMSF("../WSSS4LUAD/Dataset/1.training",
+    
+    # MODIFY THIS WHEN TRAINING AND VALIDATING
+    infer_dataset = voc12.data.MyClsDatasetMSF("wsss_valid/img", #"../WSSS4LUAD/Dataset/1.training",
                                                   scales=[0.5, 1.0, 1.5, 2.0],
                                                   inter_transform=torchvision.transforms.Compose(
                                                        [np.asarray,
@@ -50,7 +51,8 @@ if __name__ == '__main__':
     for iter, (img_name, img_list, label) in enumerate(infer_data_loader):
         img_name = img_name[0]; label = label[0]
 
-        img_path = os.path.join("../WSSS4LUAD/Dataset/1.training", img_name)
+        # MODIFY THIS WHEN TRAINING AND VALIDATING
+        img_path = os.path.join("wsss_valid/img", img_name)
         orig_img = np.asarray(Image.open(img_path))
         orig_img_size = orig_img.shape[:2]
 
@@ -85,9 +87,11 @@ if __name__ == '__main__':
         if args.out_cam is not None:
             np.save(os.path.join(args.out_cam, img_name + '.npy'), cam_dict)
 
+        # MODIFY THIS WHEN TRAINING AND VALIDATING
         if args.out_cam_pred is not None:
-            bg_score = [np.ones_like(norm_cam[0])*args.out_cam_pred_alpha]
-            pred = np.argmax(np.concatenate((bg_score, norm_cam)), 0)
+            # bg_score = [np.ones_like(norm_cam[0])*args.out_cam_pred_alpha]
+            # pred = np.argmax(np.concatenate((bg_score, norm_cam)), 0)
+            pred = np.argmax(norm_cam, 0)
             pred = pred.astype(np.uint8)
             np.save(os.path.join(args.out_cam_pred, img_name + '.npy'), pred)
             # scipy.misc.imsave(os.path.join(args.out_cam_pred, img_name + '.png'), pred.astype(np.uint8))

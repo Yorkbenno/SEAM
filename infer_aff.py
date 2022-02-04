@@ -71,7 +71,8 @@ if __name__ == '__main__':
     model.eval()
     model.cuda()
 
-    infer_dataset = voc12.data.MyImageDataset("../WSSS4LUAD/Dataset/1.training",
+    # MODIFY THIS WHEN TRAINING AND VALIDATING
+    infer_dataset = voc12.data.MyImageDataset("wsss_valid/img", #"../WSSS4LUAD/Dataset/1.training"
                                                transform=torchvision.transforms.Compose(
         [np.asarray,
          model.normalize,
@@ -148,8 +149,9 @@ if __name__ == '__main__':
                 cam_rw = imutils.crf_inference(img_8, cam_rw, t=1)
                 cam_rw = torch.from_numpy(cam_rw).view(1, 4, img.shape[2], img.shape[3]).cuda()
 
-
-            _, cam_rw_pred = torch.max(cam_rw, 1)
+            # MODIFY THIS WHEN TRAINING AND VALIDATING
+            # _, cam_rw_pred = torch.max(cam_rw, 1)
+            _, cam_rw_pred = torch.max(cam_rw[:,1:], 1)
 
             res = np.uint8(cam_rw_pred.cpu().data[0])[:orig_shape[2], :orig_shape[3]]
 

@@ -85,6 +85,16 @@ class MyImageDataset(Dataset):
 
         return name, img, label
 
+class MyImageDatasetWithPos(MyImageDataset):
+    def __init__(self, img_path, transform=None):
+        super().__init__(img_path, transform)
+    
+    def __getitem__(self, idx):
+        name, image, label = super().__getitem__(idx)
+        position = name[name.find("(")+1:name.find(")")].split(',')
+        position = np.array([int(i) for i in position])
+
+        return name, image, label, position
 
 class MyClsDataset(MyImageDataset):
 

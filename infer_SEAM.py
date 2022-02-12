@@ -36,7 +36,7 @@ if __name__ == '__main__':
     model.cuda()
     
     # Modify here
-    infer_dataset = voc12.data.MyClsDatasetMSF("../WSSS4LUAD/Dataset/1.training", #, "wsss_valid/img"
+    infer_dataset = voc12.data.MyClsDatasetMSF("../WSSS4LUAD/Dataset_wsss/1.training", #, "wsss_valid/img"
                                                   scales=[0.5, 1.0, 1.5, 2.0],
                                                   inter_transform=torchvision.transforms.Compose(
                                                        [np.asarray,
@@ -52,7 +52,7 @@ if __name__ == '__main__':
         img_name = img_name[0]; label = label[0]
 
         # Modify here
-        img_path = os.path.join("../WSSS4LUAD/Dataset/1.training", img_name)
+        img_path = os.path.join("../WSSS4LUAD/Dataset_wsss/1.training", img_name)
         orig_img = np.asarray(Image.open(img_path))
         orig_img_size = orig_img.shape[:2]
 
@@ -61,7 +61,7 @@ if __name__ == '__main__':
                 with torch.cuda.device(i%n_gpus):
                     _, cam = model_replicas[i%n_gpus](img.cuda())
                     cam = F.upsample(cam[:,1:,:,:], orig_img_size, mode='bilinear', align_corners=False)[0]
-                    cam = cam.cpu().numpy() * label.clone().view(3, 1, 1).numpy() # Modify here
+                    cam = cam.cpu().numpy() * label.clone().view(2, 1, 1).numpy() # Modify here
                     if i % 2 == 1:
                         cam = np.flip(cam, axis=-1)
                     return cam
@@ -80,10 +80,10 @@ if __name__ == '__main__':
 
         cam_dict = {}
         norm_cam_after = np.full_like(norm_cam, -100)
-        for i in range(3): # Modify here
-            # if label[i] > 1e-5:
-            cam_dict[i] = norm_cam[i]
-            norm_cam_after[i] = norm_cam[i]
+        for i in range(2): # Modify here
+            if label[i] > 1e-5:
+                cam_dict[i] = norm_cam[i]
+                norm_cam_after[i] = norm_cam[i]
 
         img_name = img_name.split(".")[0]
         if args.out_cam is not None:
@@ -91,9 +91,9 @@ if __name__ == '__main__':
 
         # Modify here
         if args.out_cam_pred is not None:
-            # bg_score = [np.ones_like(norm_cam[0])*args.out_cam_pred_alpha]
-            # pred = np.argmax(np.concatenate((bg_score, norm_cam)), 0)
-            pred = np.argmax(norm_cam, 0)
+            bg_score = [np.ones_like(norm_cam[0])*args.out_cam_pred_alpha]
+            pred = np.argmax(np.concatenate((norm_cam, bg_score)), 0)
+            # pred = np.argmax(norm_cam, 0)
             pred = pred.astype(np.uint8)
             np.save(os.path.join(args.out_cam_pred, img_name + '.npy'), pred)
             # scipy.misc.imsave(os.path.join(args.out_cam_pred, img_name + '.png'), pred.astype(np.uint8))

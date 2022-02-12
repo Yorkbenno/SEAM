@@ -72,7 +72,7 @@ if __name__ == '__main__':
     model.cuda()
 
     # Modify here
-    infer_dataset = voc12.data.MyImageDataset("../WSSS4LUAD/Dataset/1.training", #"../WSSS4LUAD/Dataset/1.training"
+    infer_dataset = voc12.data.MyImageDataset("../WSSS4LUAD/Dataset_wsss/1.training", #"../WSSS4LUAD/Dataset/1.training"
                                                transform=torchvision.transforms.Compose(
         [np.asarray,
          model.normalize,
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
         cam = np.load(os.path.join(args.cam_dir, name + '.npy'), allow_pickle=True).item()
 
-        cam_full_arr = np.zeros((4, orig_shape[2], orig_shape[3]), np.float32) # Modify
+        cam_full_arr = np.zeros((3, orig_shape[2], orig_shape[3]), np.float32) # Modify
         for k, v in cam.items():
             cam_full_arr[k+1] = v
         cam_full_arr[0] = (1 - np.max(cam_full_arr[1:], (0), keepdims=False))**args.alpha
@@ -127,10 +127,10 @@ if __name__ == '__main__':
 #                cam_full_arr = cam_full_arr.cpu().numpy()
 #                cam_full_arr = imutils.crf_inference(img_8, cam_full_arr, t=1)
 #                cam_full_arr = torch.from_numpy(cam_full_arr).view(1, 21, dheight, dwidth).cuda()
-            cam_vec = cam_full_arr.view(4, -1)
+            cam_vec = cam_full_arr.view(3, -1) # modify here
 
             cam_rw = torch.matmul(cam_vec.cuda(), trans_mat)
-            cam_rw = cam_rw.view(1, 4, dheight, dwidth)
+            cam_rw = cam_rw.view(1, 3, dheight, dwidth) # modify here
        
             cam_rw = torch.nn.Upsample((img.shape[2], img.shape[3]), mode='bilinear')(cam_rw)
 
@@ -150,8 +150,10 @@ if __name__ == '__main__':
                 cam_rw = torch.from_numpy(cam_rw).view(1, 3, img.shape[2], img.shape[3]).cuda()
 
             # Modify here
-            # _, cam_rw_pred = torch.max(cam_rw, 1)
-            _, cam_rw_pred = torch.max(cam_rw[:,1:], 1)
+            _, cam_rw_pred = torch.max(cam_rw, 1)
+            cam_rw_pred -= 1
+            cam_rw_pred[cam_rw_pred==-1] = 2 # Modify here
+            # _, cam_rw_pred = torch.max(cam_rw[:,1:], 1)
 
             res = np.uint8(cam_rw_pred.cpu().data[0])[:orig_shape[2], :orig_shape[3]]
 

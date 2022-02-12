@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", default=8, type=int)
-    parser.add_argument("--max_epoches", default=4, type=int) # Modify Here
+    parser.add_argument("--max_epoches", default=20, type=int) # Modify Here
     parser.add_argument("--network", default="network.resnet38_SEAM", type=str)
     parser.add_argument("--lr", default=0.01, type=float)
     parser.add_argument("--num_workers", default=8, type=int)
@@ -51,14 +51,14 @@ if __name__ == '__main__':
 
     print(vars(args))
     
-    model = getattr(importlib.import_module(args.network), 'Net')()
+    model = getattr(importlib.import_module(args.network), 'Net')(num_class=2) # Modify here
 
     print(model)
 
     tblogger = SummaryWriter(args.tblog_dir)	
 
     # Modify Here
-    train_dataset = voc12.data.MyClsDataset("../WSSS4LUAD/Dataset_crag/1.training/img", transform=transforms.Compose([
+    train_dataset = voc12.data.MyClsDataset("../WSSS4LUAD/Dataset_wsss/1.training", transform=transforms.Compose([
                         imutils.RandomResizeLong(448, 768),
                         transforms.RandomHorizontalFlip(),
                         transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.1),
@@ -135,8 +135,8 @@ if __name__ == '__main__':
             tensor_ecr1 = torch.abs(max_onehot(cam2.detach()) - cam_rv1)#*eq_mask
             tensor_ecr2 = torch.abs(max_onehot(cam1.detach()) - cam_rv2)#*eq_mask
             # Modify here
-            loss_ecr1 = torch.mean(torch.topk(tensor_ecr1.view(ns,-1), k=(int)(3*hs*ws*0.2), dim=-1)[0])
-            loss_ecr2 = torch.mean(torch.topk(tensor_ecr2.view(ns,-1), k=(int)(3*hs*ws*0.2), dim=-1)[0])
+            loss_ecr1 = torch.mean(torch.topk(tensor_ecr1.view(ns,-1), k=(int)(2*hs*ws*0.2), dim=-1)[0])
+            loss_ecr2 = torch.mean(torch.topk(tensor_ecr2.view(ns,-1), k=(int)(2*hs*ws*0.2), dim=-1)[0])
             loss_ecr = loss_ecr1 + loss_ecr2
 
             loss_cls = (loss_cls1 + loss_cls2)/2 + (loss_rvmin1 + loss_rvmin2)/2 

@@ -57,9 +57,9 @@ def load_img_name_list(dataset_path):
     #img_name_list = img_gt_name_list
     return img_name_list
 
-def get_file_label(filename, num_class=3):
+def get_file_label(filename, num_class):
     l = []
-    begin = -6
+    begin = -6 - 3
     for i in range(num_class):
         l.insert(0, int(filename[begin-3*i]))
     return np.array(l)
@@ -78,7 +78,7 @@ class MyImageDataset(Dataset):
         name = self.img_name_list[idx]
 
         img = PIL.Image.open(os.path.join(self.root, name)).convert("RGB")
-        label = get_file_label(name, num_class=3) # Modify Here
+        label = get_file_label(name, num_class=2) # Modify Here
 
         if self.transform:
             img = self.transform(img)

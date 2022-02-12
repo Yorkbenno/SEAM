@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", default=8, type=int)
-    parser.add_argument("--max_epoches", default=3, type=int) # Modify Here
+    parser.add_argument("--max_epoches", default=20, type=int) # Modify Here
     parser.add_argument("--network", default="network.resnet38_aff", type=str)
     parser.add_argument("--lr", default=0.01, type=float)
     parser.add_argument("--num_workers", default=8, type=int)

@@ -101,7 +101,8 @@ class ResBlock_bot(nn.Module):
         return self.forward(x, get_x_bn_relu=get_x_bn_relu)
 
 class Normalize():
-    def __init__(self, mean = (0.678,0.505,0.735), std = (0.144,0.208,0.174)):
+    # Modify Here
+    def __init__(self, mean = (0.678,0.505,0.735), std = (0.144,0.208,0.174)): #  mean=[0.831, 0.725, 0.858], std=[0.133, 0.173, 0.099]
 
         self.mean = mean
         self.std = std

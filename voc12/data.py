@@ -78,7 +78,7 @@ class MyImageDataset(Dataset):
         name = self.img_name_list[idx]
 
         img = PIL.Image.open(os.path.join(self.root, name)).convert("RGB")
-        label = get_file_label(name)
+        label = get_file_label(name, num_class=3) # Modify Here
 
         if self.transform:
             img = self.transform(img)

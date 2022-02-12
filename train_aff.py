@@ -15,14 +15,14 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", default=8, type=int)
-    parser.add_argument("--max_epoches", default=20, type=int)
+    parser.add_argument("--max_epoches", default=3, type=int) # Modify Here
     parser.add_argument("--network", default="network.resnet38_aff", type=str)
     parser.add_argument("--lr", default=0.01, type=float)
     parser.add_argument("--num_workers", default=8, type=int)
     parser.add_argument("--wt_dec", default=5e-4, type=float)
     # parser.add_argument("--train_list", default="voc12/train_aug.txt", type=str)
     # parser.add_argument("--val_list", default="voc12/val.txt", type=str)
-    parser.add_argument("--session_name", default="resnet38_aff", type=str)
+    parser.add_argument("--session_name", default="crag_aff", type=str)
     parser.add_argument("--crop_size", default=448, type=int)
     parser.add_argument("--weights", required=True, type=str)
     # parser.add_argument("--voc12_root", default='VOC2012', type=str)
@@ -38,8 +38,8 @@ if __name__ == '__main__':
 
     print(model)
 
-
-    train_dataset = voc12.data.MyAffDataset("../WSSS4LUAD/Dataset/1.training", label_la_dir=args.la_crf_dir, label_ha_dir=args.ha_crf_dir,
+    # Modify Here
+    train_dataset = voc12.data.MyAffDataset("../WSSS4LUAD/Dataset_wsss/1.training", label_la_dir=args.la_crf_dir, label_ha_dir=args.ha_crf_dir,
                                             cropsize=args.crop_size, radius=5,
                     joint_transform_list=[
                         None,

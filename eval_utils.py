@@ -172,6 +172,95 @@ def prepare_wsss(side_length: int, stride: int) -> None:
     crop_validation_images(validation_dataset_path, gt_path, bg_path, side_length, stride, validation_folder_name)
     print('cropping finishes!')
 
+def prepare_crag(side_length: int, stride: int) -> None:
+    """
+    offline crop the images into crag_valid_out_cam/crop_images
+
+    Args:
+        side_length (int): the crop image length
+        stride (int): the steps for cutting a new image
+    """
+    validation_folder_name = 'crag_valid'
+    validation_dataset_path = '../WSSS4LUAD/Dataset_crag/2.validation/img'
+    gt_path = '../WSSS4LUAD/Dataset_crag/2.validation/mask'
+    # bg_path = '../WSSS4LUAD/Dataset_crag/2.validation/background-mask'
+    if not os.path.exists(validation_folder_name):
+        os.mkdir(validation_folder_name)
+
+    print('crop validation set images ...')
+    crop_crag_validation_images(validation_dataset_path, gt_path, side_length, stride, validation_folder_name)
+    print('cropping finishes!')
+
+def crop_crag_validation_images(dataset_path, gt_path, side_length, stride, validation_folder_name):
+
+    images = os.listdir(dataset_path)
+    if not os.path.exists(f'{validation_folder_name}/img'):
+        os.mkdir(f'{validation_folder_name}/img')
+    if not os.path.exists(f'{validation_folder_name}/mask'):
+        os.mkdir(f'{validation_folder_name}/mask')
+    
+    for image in tqdm(images):
+        image_path = os.path.join(dataset_path, image)
+        gt_mask_path = os.path.join(gt_path, image)
+
+        im = np.asarray(Image.open(image_path))
+        im_list, position_list = multiscale_online_crop(im, side_length, stride)
+        gt_im = np.asarray(Image.open(gt_mask_path))
+        gt_list, _ = multiscale_online_crop(gt_im, side_length, stride)
+
+        for j in range(len(im_list)):
+            im_list[j].save(f'{validation_folder_name}/img/{image.split(".")[0]}_{position_list[j]}_[1, 1].png')
+        for j in range(len(gt_list)):
+            gt_list[j].save(f'{validation_folder_name}/mask/{image.split(".")[0]}_{position_list[j]}_[1, 1].png')
+
+def get_overall_crag_valid_score(pred_image_path, groundtruth_path, num_workers=5, mask_path=None, num_class=3):
+
+    image_names = list(map(lambda x: x.split('.')[0], os.listdir(pred_image_path)))
+    random.shuffle(image_names)
+    image_list = chunks(image_names, num_workers)
+
+    def f(intersection, union, image_list):
+        gt_list = []
+        pred_list = []
+
+        for im_name in image_list:
+            cam = np.load(os.path.join(pred_image_path, f"{im_name}.npy"), allow_pickle=True).astype(np.uint8).reshape(-1)
+            groundtruth = np.asarray(Image.open(groundtruth_path + f"/{im_name}.png")).reshape(-1)
+            
+            if mask_path:
+                mask = np.asarray(Image.open(mask_path + f"/{im_name}.png")).reshape(-1)
+                cam = cam[mask == 0]
+                groundtruth = groundtruth[mask == 0]
+            
+            gt_list.extend(groundtruth)
+            pred_list.extend(cam)
+
+        pred = np.array(pred_list)
+        real = np.array(gt_list)
+        for i in range(num_class):
+            if i in pred:
+                inter = sum(np.logical_and(pred == i, real == i))
+                u = sum(np.logical_or(pred == i, real == i))
+                intersection[i] += inter
+                union[i] += u
+
+    intersection = Array("d", [0] * num_class)
+    union = Array("d", [0] * num_class)
+    p_list = []
+    for i in range(len(image_list)):
+        p = Process(target=f, args=(intersection, union, image_list[i]))
+        p.start()
+        p_list.append(p)
+    for p in p_list:
+        p.join()
+
+    eps = 1e-7
+    total = 0
+    for i in range(num_class):
+        class_i = intersection[i] / (union[i] + eps)
+        total += class_i
+    return total / num_class
+
 def get_overall_valid_score(pred_image_path, groundtruth_path, num_workers=5, mask_path=None, num_class=3):
     """
     get the scores with validation groundtruth, the background will be masked out
@@ -234,6 +323,6 @@ def get_overall_valid_score(pred_image_path, groundtruth_path, num_workers=5, ma
     return total / num_class
 
 if __name__ == "__main__":
-    # prepare_wsss(224, 224)
-    result = get_overall_valid_score("valid_rw", "wsss_valid/mask", mask_path="wsss_valid/background-mask")
+    # prepare_crag(224, 224)
+    result = get_overall_valid_score("validoutcampred", "wsss_valid/mask", mask_path="wsss_valid/background-mask")
     print(result)

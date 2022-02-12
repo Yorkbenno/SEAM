@@ -71,8 +71,8 @@ if __name__ == '__main__':
     model.eval()
     model.cuda()
 
-    # MODIFY THIS WHEN TRAINING AND VALIDATING
-    infer_dataset = voc12.data.MyImageDataset("wsss_valid/img", #"../WSSS4LUAD/Dataset/1.training"
+    # Modify here
+    infer_dataset = voc12.data.MyImageDataset("../WSSS4LUAD/Dataset/1.training", #"../WSSS4LUAD/Dataset/1.training"
                                                transform=torchvision.transforms.Compose(
         [np.asarray,
          model.normalize,
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
         cam = np.load(os.path.join(args.cam_dir, name + '.npy'), allow_pickle=True).item()
 
-        cam_full_arr = np.zeros((4, orig_shape[2], orig_shape[3]), np.float32)
+        cam_full_arr = np.zeros((4, orig_shape[2], orig_shape[3]), np.float32) # Modify
         for k, v in cam.items():
             cam_full_arr[k+1] = v
         cam_full_arr[0] = (1 - np.max(cam_full_arr[1:], (0), keepdims=False))**args.alpha
@@ -147,9 +147,9 @@ if __name__ == '__main__':
                 img_8 = img_8.astype(np.uint8)
                 cam_rw = cam_rw[0].cpu().numpy()
                 cam_rw = imutils.crf_inference(img_8, cam_rw, t=1)
-                cam_rw = torch.from_numpy(cam_rw).view(1, 4, img.shape[2], img.shape[3]).cuda()
+                cam_rw = torch.from_numpy(cam_rw).view(1, 3, img.shape[2], img.shape[3]).cuda()
 
-            # MODIFY THIS WHEN TRAINING AND VALIDATING
+            # Modify here
             # _, cam_rw_pred = torch.max(cam_rw, 1)
             _, cam_rw_pred = torch.max(cam_rw[:,1:], 1)
 

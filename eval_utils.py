@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import random
+from typing import Counter
 from tqdm import tqdm
 from PIL import Image
 import numpy as np
@@ -16,6 +17,9 @@ import shutil
 from multiprocessing import Array, Process
 # from utils.util import chunks
 import random
+from matplotlib import pyplot as plt
+import png
+from tqdm import tqdm
 
 def chunks(lst, num_workers=None, n=None):
     """
@@ -322,7 +326,56 @@ def get_overall_valid_score(pred_image_path, groundtruth_path, num_workers=5, ma
         total += class_i
     return total / num_class
 
+def add_background_mask(prediction_path, origin_ims_path, destination):
+    if not os.path.exists(destination):
+        os.mkdir(destination)
+    for image in tqdm(os.listdir(origin_ims_path)):
+        truth_image = np.asarray(Image.open(os.path.join(origin_ims_path, image)))
+        sum_image = np.sum(truth_image, axis=2)
+        img_name = image.split('.')[0]
+        prediction = np.load(os.path.join(prediction_path, img_name+'.npy'), allow_pickle=True)
+        # print(truth_image.shape, prediction.shape, sum_image.shape)
+        prediction[sum_image>600] = 255
+        np.save(os.path.join(destination, img_name+'.npy'), prediction)
+
+def visualize(path):
+    if not os.path.exists(f'temp'):
+        os.mkdir(f'temp')
+    
+    img_path = "../WSSS4LUAD/Dataset_wsss/1.training"
+    for file in tqdm(os.listdir(path)[:5]):
+        
+        cam_path = path
+        name = file.split('.')[0]
+        cam = np.load(os.path.join(cam_path, f'{name}.npy'), allow_pickle=True).astype(np.uint8)
+
+        palette = [(0, 64, 128), (64, 128, 0), (243, 152, 0), (255, 255, 255)]
+
+        with open(f'temp/{name}.png', 'wb') as f:
+            w = png.Writer(cam.shape[1], cam.shape[0],palette=palette, bitdepth=8)
+            w.write(f, cam)
+        
+        plt.figure(1, figsize=(40, 40))
+        origin_im = plt.imread(f'{img_path}/{name}.png')
+        im = plt.imread(f'temp/{name}.png')
+
+        # prediction2 = plt.imread(f'temp2/{i:02d}.png')
+        plt.subplot(131)
+        plt.imshow(origin_im)
+        plt.title('origin image')
+        plt.subplot(132)
+        plt.imshow(im)
+        plt.title(f'prediction of model')
+        # plt.subplot(133)
+        # plt.imshow(gt)
+        # plt.title('groundtruth')
+        plt.savefig(f'temp/{name}.png')
+        print(sorted(Counter(cam.reshape(-1))))
+
 if __name__ == "__main__":
     # prepare_crag(224, 224)
-    result = get_overall_valid_score("validoutcampred", "wsss_valid/mask", mask_path="wsss_valid/background-mask")
+    result = get_overall_valid_score("validoutcampred", "/home/yyubm/WSSS4LUAD/test_CRAG_labelconsider_mask_112", num_class=2)
+    # result2 = get_overall_valid_score("validoutcampred_label", "/home/yyubm/WSSS4LUAD/test_CRAG_labelconsider_mask")
     print(result)
+    # add_background_mask("outcampred", "../WSSS4LUAD/Dataset_wsss/1.training", "biglabel_addbg_wsss_train_pseudo")
+    # visualize('biglabel_addbg_wsss_train_pseudo')

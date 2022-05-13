@@ -59,7 +59,7 @@ def load_img_name_list(dataset_path):
 
 def get_file_label(filename, num_class):
     l = []
-    begin = -6 - 3
+    begin = -6
     for i in range(num_class):
         l.insert(0, int(filename[begin-3*i]))
     return np.array(l)

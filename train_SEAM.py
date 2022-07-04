@@ -58,7 +58,7 @@ if __name__ == '__main__':
     tblogger = SummaryWriter(args.tblog_dir)	
 
     # Modify Here
-    train_dataset = voc12.data.MyClsDataset("/home/yyubm/WSSS4LUAD/Dataset_warwick/1.training/img", transform=transforms.Compose([
+    train_dataset = voc12.data.MyClsDataset("/home/yyubm/OEEM/classification/glas/1.training/img", transform=transforms.Compose([
                         imutils.RandomResizeLong(448, 768),
                         transforms.RandomHorizontalFlip(),
                         transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.1),

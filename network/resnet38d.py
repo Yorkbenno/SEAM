@@ -102,7 +102,7 @@ class ResBlock_bot(nn.Module):
 
 class Normalize():
     # Modify Here
-    def __init__(self, mean=[0.831, 0.725, 0.858], std=[0.133, 0.173, 0.099]): #mean=[0.787, 0.511, 0.785], std=[0.167, 0.248, 0.131]): #    # mean = (0.678,0.505,0.735), std = (0.144,0.208,0.174)
+    def __init__(self, mean=[0.787, 0.511, 0.785], std=[0.167, 0.248, 0.131]): #: #    # mean = (0.678,0.505,0.735), std = (0.144,0.208,0.174)
 
         self.mean = mean
         self.std = std

@@ -81,15 +81,15 @@ if __name__ == '__main__':
         norm_cam = (sum_cam-cam_min-1e-5) / (cam_max - cam_min + 1e-5)
 
         cam_dict = {}
-        norm_cam_after = np.full_like(norm_cam, -100)
+        norm_cam_after = np.full_like(norm_cam, -np.inf)
         for i in range(2): # Modify here
-            # if label[i] > 1e-5:
-            cam_dict[i] = norm_cam[i]
-            norm_cam_after[i] = norm_cam[i]
+            if label[i] > 1e-5:
+                cam_dict[i] = norm_cam[i]
+                norm_cam_after[i] = norm_cam[i]
 
         img_name = img_name.split(".")[0]
         if args.out_cam is not None:
-            np.save(os.path.join(args.out_cam, img_name + '.npy'), cam_dict)
+            np.save(os.path.join(args.out_cam, img_name + '.npy'), norm_cam)
 
         # Modify here
         if args.out_cam_pred is not None:
@@ -97,7 +97,7 @@ if __name__ == '__main__':
                 os.mkdir(args.out_cam_pred)
             # bg_score = [np.ones_like(norm_cam[0])*args.out_cam_pred_alpha]
             # pred = np.argmax(np.concatenate((norm_cam, bg_score)), 0)
-            pred = np.argmax(norm_cam, 0)
+            pred = np.argmax(norm_cam_after, 0)
             pred = pred.astype(np.uint8)
             np.save(os.path.join(args.out_cam_pred, img_name + '.npy'), pred)
             # scipy.misc.imsave(os.path.join(args.out_cam_pred, img_name + '.png'), pred.astype(np.uint8))
